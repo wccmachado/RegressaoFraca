@@ -14,7 +14,7 @@ public class BDDCreator {
 	private int propNum = 0;
 	private transient BDD initialStateBDD;
 	private transient BDD goalBDD;
-//	private transient BDD constraintBDD = null;
+	private transient BDD initBDD ;
 
 	//private transient Action action;
 	private transient BDD preCondiction;
@@ -125,10 +125,7 @@ public class BDDCreator {
 		return varTable;
 	}
 	
-	//public Hashtable<Integer, String> getVarTable2() {
-	//	return varTable2;
-	//}
-	
+
 	public BDD getInitiaStateBDD(){
 		return initialStateBDD;
 	}
@@ -136,15 +133,17 @@ public class BDDCreator {
 	public BDD getGoalBDD(){
 		return goalBDD;
 	}
-	
+
+
+	public BDD getInitBDD() {
+		return initBDD;
+	}
+
 	public Vector<Action> getActionsSet() {
 		return actionsSet;
 	}
 	
-	/*public BDD getConstraintBDD() {
-		return constraintBDD;
-	}*/
-	
+
 	/*[input: just the actions] Initializes the BDD variables table with the propositions, propositions primed and actions*/
 	public void initializeVarTable(String propLine) throws IOException {
 		StringTokenizer tknProp = new StringTokenizer(propLine, ",");
@@ -158,7 +157,6 @@ public class BDDCreator {
 		for (int i = 0; i < propNum; i++) {
 			propName = tknProp.nextToken();
 			varTable.put(propName,i);
-			//varTable2.put(i,propName);
 		}
 		
 	}
@@ -172,6 +170,10 @@ public class BDDCreator {
 	/**Creates a BDD representing the initial state.*/
 	public void createInitialStateBdd(String readLine){
 		initialStateBDD = createAndBdd(readLine);
+	}
+	/**Creates a BDD representing the prepositions init.*/
+	public void createInitBdd(String readLine){
+		initBDD = createAndBdd(readLine);
 	}
 	
 	/**Creates a BDD representing the goal **/
@@ -247,13 +249,9 @@ public class BDDCreator {
 						index = varTable.get(effectProposition);
 						bdd.andWith(fac.ithVar(index));
 					}
-				//	effect= bdd.and(effect);
+
 				}
 			}
-			//if (effect == null)
-			//	effect = bdd;
-			//else
-		//		effect=effect.and(bdd);
 
 			listEffect.add(bdd);
 			bdd = null;

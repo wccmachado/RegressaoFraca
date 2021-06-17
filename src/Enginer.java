@@ -1,6 +1,5 @@
 import alu.ufc.file.ModelReader;
 import alu.ufc.regression.ModelChecker;
-import net.sf.javabdd.BDD;
 
 import java.io.File;
 import java.io.IOException;

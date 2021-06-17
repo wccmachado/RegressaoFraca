@@ -31,12 +31,12 @@ public class ModelReader {
 			String line;
 			String propositionsLine = "";
 			String initialStateLine = "";
-			String constraintsLine = "";
 			String goalLine = "";
 			String preferencesLine = "";
 			String actionName = "";
 			String actionPre = "";
 			String actionEff = "";
+			String init = "";
 				
 			while (in.ready()) {
 				line = in.readLine();
@@ -45,15 +45,15 @@ public class ModelReader {
 				if(line.equals("<predicates>")){
 					line = in.readLine(); //read next line containing the propositions
 					propositionsLine = line;
-					//System.out.println("--->" + propositionsLine);
 					bddCreator.initializeVarTable(propositionsLine);
 					line = in.readLine(); //read <\predicates>
 				}
 					
 				if(line.equals("<init>")){
 					    line = in.readLine(); //<constraints><\constraints>
-
-
+					    init = line;
+						bddCreator.createInitBdd(init);
+					    line = in.readLine(); // read the line </initial>
 				}
 
 				
@@ -160,6 +160,10 @@ public class ModelReader {
 	
 	public BDD getInitialStateBDD(){
 		return bddCreator.getInitiaStateBDD();
+	}
+
+	public BDD getInitBDD(){
+		return bddCreator.getInitBDD();
 	}
 	
 	public Vector<Action> getActionSet(){

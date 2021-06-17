@@ -20,15 +20,14 @@ public class ModelChecker {
     int indexlstRegression=0;
     private Preference preference;
     private Vector<Action> actionSet;
-    private Grafo<BDD, Action> grafo = new Grafo<>();
-    ModelReader model;
-   // Hashtable<BDD, List<String>> path = new Hashtable<>();
-    //private Hashtable<Integer,String> varTable;
+    private ModelReader model;
+
     private BDD goalState;
     private BDD initialState;
     private BDD constraints;
     private BDD auxiliar;
     private BDD preferences;
+    private BDD init;
     private List<BDD> listaProposition;
 
     private Hashtable<Integer, List<String> > politic = new Hashtable<>();
@@ -52,12 +51,11 @@ public class ModelChecker {
         this.model = model;
         this.actionSet = model.getActionSet();
         this.initialState = model.getInitialStateBDD();
+        this.init = model.getInitBDD();
         this.goalState = model.getGoalSpec();
-       // this.constraints = model.getConstraints();
         this.preference = model.getPreference();
         this.auxiliar = model.getAuxiliarBDD();
         this.listaProposition = model.getBDDPropositions();
-        //politic.put(0,"meta");
     }
 	
 	public BDD run() {
@@ -119,6 +117,7 @@ public class ModelChecker {
             i++;
         }
         System.out.println("SatEF");
+
         reached.printDot();
         return reached;
     }
@@ -151,7 +150,7 @@ public class ModelChecker {
         BDD W = phi.id();
         BDD meta = psi.id();
        // BDD X = null; // -- valor empty (constante).
-        BDD reached = psi.id();
+        BDD reached = init.id().and(goalState.id());
         BDD reg = reached.id();
 
         BDD aux;
@@ -170,23 +169,35 @@ public class ModelChecker {
 
            aux = reg;
 
-           reg.printDot();
+         //  reg.printDot();
 
            reg = reg.apply(reached, BDDFactory.diff);
-            System.out.println("Aqui ---> ");
-            reg.printDot();
-           if (!reg.apply(initialState.id(),BDDFactory.and).isZero() && !reg.apply(meta.id(),BDDFactory.and).isZero()){
-                System.out.println("Estado inicial alcançado. ");
-                reached= reached.or(reg);
-                return reg;
-            }
+
+
+
+
+           if(reg.apply(meta.id().not().and(initialState.id()),BDDFactory.and).apply(meta.id().not().and(initialState.id()),BDDFactory.diff).isZero()){
+
+               System.out.println( "Estado final e meta alcançados");
+               return  reg;
+           }
+        /**
+         *  remove the path that reached the final state and does not contain the goal.
+         */
+        if (reg.apply(initialState.id(),BDDFactory.and).and(meta.id().not()).isZero() ){
+            //  aux.free();
+            //  aux = reg;
+              reg = reg.apply(reg.apply(initialState.id().and(meta.id()),BDDFactory.and),BDDFactory.diff);
+
+        }
+
 
             aux.free();
-            aux= reached;
-            reached= reached.or(reg);
+          //  aux= reached;
+         //   reached= reached.or(reg);
 
           // reached.printDot();
-           aux.free();
+         //  aux.free();
            indexPolitic++;
 
         }
@@ -206,7 +217,7 @@ public class ModelChecker {
 
         for (Action a : actionSet) {
 
-                teste = regressionFraca(formula, a);
+                teste = regressionFraca(formula, a).xor(formula);
 
                 if (regFraca == null) {
 
@@ -231,14 +242,6 @@ public class ModelChecker {
 
 
         return regFraca;
-    }
-    private  void printRegression(){
-        System.out.println("Tamanho da regressão: " + lstRegression.size());
-
-        for (BDD bdd: lstRegression
-             ) {
-            bdd.printDot();
-        }
     }
 
     /* Propplan regression based on action: Qbf based computation */
@@ -346,12 +349,22 @@ public class ModelChecker {
     }
 
 
-    // public BDD getRepresentationPropositionalSetX1( BDD formulaInitial){
-  //      BDD aux=null;
-   //     BDD meta = getRepresentationPropositionalSetX(initialState.id());
+/*
+     public BDD getRepresentationPropositionalSetX1( BDD formulaInitial){
+        BDD aux=null;
+       BDD meta = getRepresentationPropositionalSetX(initialState.id());
 
-  //      return aux;
+        return aux;
 
-  //  }
+    }
+  private  void printRegression(){
+      System.out.println("Tamanho da regressão: " + lstRegression.size());
+
+      for (BDD bdd: lstRegression
+      ) {
+          bdd.printDot();
+      }
+  }
+*/
 
 }
