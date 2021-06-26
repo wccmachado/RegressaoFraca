@@ -37,6 +37,7 @@ public class ModelReader {
 			String actionPre = "";
 			String actionEff = "";
 			String init = "";
+			String constraintsLine = "";
 				
 			while (in.ready()) {
 				line = in.readLine();
@@ -48,17 +49,19 @@ public class ModelReader {
 					bddCreator.initializeVarTable(propositionsLine);
 					line = in.readLine(); //read <\predicates>
 				}
-					
-				if(line.equals("<init>")){
-					    line = in.readLine(); //<constraints><\constraints>
-					    init = line;
-						bddCreator.createInitBdd(init);
-					    line = in.readLine(); // read the line </initial>
+
+				if(line.equals("<constraints>")){
+					while(line.equals("<\\constraints>") == false){
+						line = in.readLine(); //<constraints><\constraints>
+						if(line.equals("<\\constraints>")) break;
+						constraintsLine = line;
+						bddCreator.createConstraintBDD(constraintsLine);
+					}
 				}
 
 				
 				// read the lines corresponding to the initial state
-				if(line.equals("<initialState>")){
+				if(line.equals("<initial>")){
 					//System.out.println("initial begin");
 					line = in.readLine(); //read next line containing the initial state specification
 					initialStateLine = line;
@@ -135,7 +138,9 @@ public class ModelReader {
 	//public String getType() {
 	//	return type;
 	//}
-	
+	public BDD getConstraints(){
+		return bddCreator.getConstraintBDD();
+	}
 	public Hashtable<String,Integer> getVarTable() {
 		return bddCreator.getVarTable();
 	}

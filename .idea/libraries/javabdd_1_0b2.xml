@@ -3,7 +3,9 @@
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/javabdd-1.0b2.jar!/" />
     </CLASSES>
-    <JAVADOC />
+    <JAVADOC>
+      <root url="file://$PROJECT_DIR$/apidocs" />
+    </JAVADOC>
     <SOURCES />
   </library>
 </component>

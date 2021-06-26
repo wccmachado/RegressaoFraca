@@ -143,6 +143,10 @@ public class Action {
 
     }
 
+    public  BDD getTeste(){
+        return creator.createOrAndBddWithEffectUncertain(hstListPrepositionEffect);
+    }
+
     public BDD getEffect(){
         return creator.getEffect();
 

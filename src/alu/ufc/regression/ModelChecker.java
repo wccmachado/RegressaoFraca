@@ -17,7 +17,7 @@ import java.util.*;
 public class ModelChecker {
 
     List<BDD> lstRegression = new ArrayList<>();
-    int indexlstRegression=0;
+    int indexlstRegression = 0;
     private Preference preference;
     private Vector<Action> actionSet;
     private ModelReader model;
@@ -30,18 +30,18 @@ public class ModelChecker {
     private BDD init;
     private List<BDD> listaProposition;
 
-    private Hashtable<Integer, List<String> > politic = new Hashtable<>();
+    private Hashtable<Integer, List<String>> politic = new Hashtable<>();
     private List<String> lstNameActionPolitic = new ArrayList<>();
-    private int indexForPolitic=0;
+    private int indexForPolitic = 0;
 
-    private Hashtable<Integer, List<BDD> > statesReached = new Hashtable<>();
+    private Hashtable<Integer, List<BDD>> statesReached = new Hashtable<>();
     private List<BDD> lstStatesReached = new ArrayList<>();
-    private int indexForStatesReached=0;
+    private int indexForStatesReached = 0;
 
     private List<String> actionRelevante = new ArrayList<>();
 
-    private String nameAction="";
-    private int indexPolitic=0;
+    private String nameAction = "";
+
 
     private boolean isAlways = true;
 
@@ -49,6 +49,7 @@ public class ModelChecker {
     /* Constructor */
     public ModelChecker(ModelReader model) {
         this.model = model;
+        this.constraints = model.getConstraints();
         this.actionSet = model.getActionSet();
         this.initialState = model.getInitialStateBDD();
         this.init = model.getInitBDD();
@@ -57,19 +58,19 @@ public class ModelChecker {
         this.auxiliar = model.getAuxiliarBDD();
         this.listaProposition = model.getBDDPropositions();
     }
-	
-	public BDD run() {
 
-		if(preference.getOperator() == Operator.ALWAYS) {
-            return satEU(this.initialState, this.goalState, preference.getBddProposition() );
-			//return satEU(satEG(preference.getBddProposition()), this.goalState);
-		}
-       // System.out.println("Aqui "+ actionSet.size());
-       //rr BDD bdd = preference.getBddProposition();
-		//return satEU(satEF(preference.getBddProposition()), this.goalState);
+    public BDD run() {
+
+        if (preference.getOperator() == Operator.ALWAYS) {
+            return satEU(this.initialState, this.goalState, preference.getBddProposition());
+            //return satEU(satEG(preference.getBddProposition()), this.goalState);
+        }
+        // System.out.println("Aqui "+ actionSet.size());
+        //rr BDD bdd = preference.getBddProposition();
+        //return satEU(satEF(preference.getBddProposition()), this.goalState);
 
         return null;// satEU(satEF(preference.getBddProposition()), this.goalState);
-	}
+    }
 
     public BDD satEF(BDD phi) {//BDD phi
 
@@ -84,10 +85,10 @@ public class ModelChecker {
         while (Z.isZero() == false) {
 
             aux = Z.and(initialState.id());
-          //  System.out.println("and z - initialState");
-           // Z.and(initialState.id()).printDot();
+            //  System.out.println("and z - initialState");
+            // Z.and(initialState.id()).printDot();
 
-           // aux.free();
+            // aux.free();
             aux = Z;
 
             Z = regression(Z);
@@ -139,208 +140,159 @@ public class ModelChecker {
 	}*/
 
 
-
     /*
-    * phi - estado inicial
-    * psi - meta
-    * */
+     * phi - estado inicial
+     * psi - meta
+     * */
     public BDD satEU(BDD phi, BDD psi, BDD pref) {
         BDD alwaysPrefe = pref;
-        System.out.println("Computando EU");
+
         BDD W = phi.id();
         BDD meta = psi.id();
-       // BDD X = null; // -- valor empty (constante).
-        BDD reached = init.id().and(goalState.id());
-        BDD reg = reached.id();
-
+        BDD X = null; // -- valor empty (constante).
+        BDD reg;
         BDD aux;
-
-        int j=0;
-
-        reg= getRepresentationPropositionalSetX(reg);
-        lstStatesReached.add(reg);
-        statesReached.put(0,lstStatesReached);
-
-        while (reg.isZero() == false){
-           System.out.println("camada " + indexPolitic);
+         int i = 0;
 
 
-           reg = regression(reg); //Y
+        int j = 0;
+        System.out.println("Computando EU");
 
-           aux = reg;
+        while ((X == null) || (!X.equals(meta))) {
+            System.out.println("camada " + i);
+            X = meta;
 
-         //  reg.printDot();
+           // aux = reg;
+                meta.printSet();
+                reg = regression(meta); //Y
+                System.out.println("regressão na camada: " + i);
+                reg.printSet();
+             //   reg = reg.apply(meta, BDDFactory.diff);
+           // meta = meta.apply(reg,BDDFactory.diff);
+                if (reg == null) {
+                    return meta;
+                } else {
+                        meta = meta.or(reg);
+                        System.out.println("meta = meta.or(reg): " );
+                        meta.printSet();
 
-           reg = reg.apply(reached, BDDFactory.diff);
+                        if (!W.and(reg).and(meta).isZero()) {
+                            meta= W.and(reg.and(meta));
+                            System.out.println("Meta: ");
+                            meta.printSet();
+                            return meta;
+                        }
 
-
-
-
-           if(reg.apply(meta.id().not().and(initialState.id()),BDDFactory.and).apply(meta.id().not().and(initialState.id()),BDDFactory.diff).isZero()){
-
-               System.out.println( "Estado final e meta alcançados");
-               return  reg;
-           }
-        /**
-         *  remove the path that reached the final state and does not contain the goal.
-         */
-        if (reg.apply(initialState.id(),BDDFactory.and).and(meta.id().not()).isZero() ){
-            //  aux.free();
-            //  aux = reg;
-              reg = reg.apply(reg.apply(initialState.id().and(meta.id()),BDDFactory.and),BDDFactory.diff);
-
-        }
-
-
-            aux.free();
-          //  aux= reached;
-         //   reached= reached.or(reg);
-
-          // reached.printDot();
-         //  aux.free();
-           indexPolitic++;
+                }
+            i++;
 
         }
+        System.out.println("Y");
+        meta.printSet();
+        System.out.println("Não achou");
 
-        System.out.println("valor de i " + indexPolitic);
-        reg.printDot();
 
-        return reg;
+        System.out.println("Quantidade de passos: " + i);
+
+        return meta;
     }
 
     /* Deterministic Regression of a formula by a set of actions */
     public BDD regression(BDD formula) {//BDD formula
-
+        BDD auxteste = null;
         BDD regFraca = null;
         BDD teste = null, regForte = null, teste2 = null;
         BDD aux = null;
 
+
         for (Action a : actionSet) {
 
-                teste = regressionFraca(formula, a).xor(formula);
 
-                if (regFraca == null) {
+            teste = regressionFraca(formula, a);
 
-                        regFraca = teste;
+            aux = teste;
+			teste = teste.and(constraints);
+			aux.free();
 
-                    // regForte = teste2;
-                } else {
-                    //if (regFraca.and(preference.getBddProposition()).isOne())
-
-                          regFraca = regFraca.xor(teste);
-                       //   path.put(teste,a.getName());
-                    // regForte.orWith(teste2);
-                }
+            if (regFraca == null) {
+                regFraca = teste;
+            } else {
+                regFraca = regFraca.orWith(teste);
 
             }
-        //}
-      //  lstRegression.add(indexlstRegression,regFraca);
-       // actionRelevante.add(indexPolitic, nameAction);
-      //  politic.put(indexPolitic,nameAction);
-        nameAction="";
-       // indexlstRegression++;
 
+        }
+
+        nameAction = "";
 
         return regFraca;
     }
 
-    /* Propplan regression based on action: Qbf based computation */
+    /* Regression based on action*/
     public BDD regressionFraca(BDD Y, Action a) {
 
-        List<BDD> changeSet = new ArrayList<>();
+        BDD reg, aux;
 
-        //checks whether the effects of an action are relevant
+        reg = Y.and(a.getTeste());// (Y ^ effect(a))
+        aux = reg;
+        reg = reg.and(constraints);
+        aux.free();
 
-     /*   System.out.println("Nome da ação: " + a.getName());
-        for (BDD bdd: a.getAndEffetBDD()){
-            System.out.println("########################");
-            bdd.printDot();
-            System.out.println("######################## OU");
-            a.getOrEffect(a.getAndEffetBDD()).printDot();
-            System.out.println("########################");
-        }*/
-        BDD reg = Y.and(a.getOrEffect(a.getAndEffetBDD())); //(Y ^ effect(a))
 
         if (reg.isZero() == false) {
 
-            if (nameAction.equals(""))
-               nameAction= a.getName();
-            else
-                 nameAction = nameAction + ": "+ a.getName();
-
-            changeSet.addAll(a.modifyAction());
-            for (BDD bdd : changeSet) {
+            System.out.println("Name action relevant:" + a.getName());
+            aux = reg;
+            for (BDD bdd : a.modifyAction()) {
                 reg = reg.exist(bdd);//qbf computation
             }
+            aux.free();
 
             reg = reg.and(a.getPreCondictionBDD()); //precondition(a) ^ E changes(a). test
 
 
-            System.out.println("Name action :" + a.getName());
-            reg.printDot();
+
         }
 
 
         return reg;
     }
 
-  /*  public BDD regressionForte(BDD Y, Action a) {
+    /*  public BDD regressionForte(BDD Y, Action a) {
 
-        // stores the conjunction of the propositions
-        List<BDD> listAndBDD = new ArrayList<>();
-        //List<BDD> listAndBDD = new ArrayList<>();
-        List<BDD> changeSet = new ArrayList<>();
-        BDD reg;// aux
-
-
-        System.out.println("Nome da ação : " + a.getName());
-        listAndBDD = List.copyOf(a.getAndEffetBDD());
+          // stores the conjunction of the propositions
+          List<BDD> listAndBDD = new ArrayList<>();
+          //List<BDD> listAndBDD = new ArrayList<>();
+          List<BDD> changeSet = new ArrayList<>();
+          BDD reg;// aux
 
 
-        //checks whether the effects of an action are relevant
-        reg = a.getOrEffect(listAndBDD).imp(Y); //(Y ^ effect(a))
+          System.out.println("Nome da ação : " + a.getName());
+          listAndBDD = List.copyOf(a.getAndEffetBDD());
 
 
-        System.out.println("Name action :" + a.getName());
-        System.out.println("Precondiction :");
-        a.getPreCondBDD().printDot();
+          //checks whether the effects of an action are relevant
+          reg = a.getOrEffect(listAndBDD).imp(Y); //(Y ^ effect(a))
 
 
-        if (reg.isZero() == false) {
+          System.out.println("Name action :" + a.getName());
+          System.out.println("Precondiction :");
+          a.getPreCondBDD().printDot();
 
-            changeSet.addAll(a.modifyAction());
-            for (BDD bdd : changeSet) {
-                reg = reg.forAll(bdd);//qbf computation
-            }
-            reg = reg.and(a.getPreCondBDD()); //precondition(a) ^ E changes(a). test
-        }
 
-        return reg;
-    }*/
-    // Propositional representation of a set X
-    public BDD getRepresentationPropositionalSetX( BDD formulaInitial){
-        int[] var = formulaInitial.varProfile();
-        BDD aux=null;
-        for (int i = 0; i < listaProposition.size(); i++) {
-            if (i==0){
-                if (var[i]==1)
-                    aux= listaProposition.get(i);
-                else
-                    aux = listaProposition.get(i).not();
-            }else {
-                if (var[i] == 1)
-                        aux = aux.and(listaProposition.get(i));
-                else {
-                        aux = aux.and(listaProposition.get(i).not());
-                    }
-                }
-            }
-       // System.out.println("estado X ");
-       // aux.printDot();
-        return aux;
+          if (reg.isZero() == false) {
 
-    }
-    private  void politica(){
+              changeSet.addAll(a.modifyAction());
+              for (BDD bdd : changeSet) {
+                  reg = reg.forAll(bdd);//qbf computation
+              }
+              reg = reg.and(a.getPreCondBDD()); //precondition(a) ^ E changes(a). test
+          }
+
+          return reg;
+      }*/
+
+    private void politica() {
         Set<Integer> key = politic.keySet();
         for (Integer index : key
         ) {
@@ -348,6 +300,43 @@ public class ModelChecker {
         }
     }
 
+    private BDD notGoal(BDD goal) {
+        BDD aux = null;
+
+        for (int i = 0; i < goal.scanSet().length; i++) {
+            if (aux == null) {
+                aux = goal.getFactory().nithVar(goal.scanSet()[i]);
+            } else {
+                aux = aux.and(goal.getFactory().nithVar(goal.scanSet()[i]));
+            }
+        }
+        return aux;
+    }
+
+    /*private boolean isEffectRelevant(BDD eff , BDD Y) {
+        boolean isEffectRelevantTemp = false;
+
+        effect:
+        {
+            for (int i = 0; i < eff.scanSet().length; i++) {
+                for (int j = 0; j < Y.scanSet().length; j++) {
+                    if (!(eff.getFactory().ithVar(eff.scanSet()[i]).equals(Y.getFactory().ithVar(Y.scanSet()[j])))) {
+                        isEffectRelevantTemp = false;
+                        if (j == Y.scanSet().length - 1)
+                            break;
+                    } else {
+                        isEffectRelevantTemp = true;
+                        break;
+                    }
+
+                }
+            }
+
+        }
+
+    return  isEffectRelevantTemp;
+    }
+*/
 
 /*
      public BDD getRepresentationPropositionalSetX1( BDD formulaInitial){

@@ -14,6 +14,7 @@ public class BDDCreator {
 	private int propNum = 0;
 	private transient BDD initialStateBDD;
 	private transient BDD goalBDD;
+	private transient BDD constraintBDD=null;
 	private transient BDD initBDD ;
 
 	//private transient Action action;
@@ -32,9 +33,16 @@ public class BDDCreator {
 	private BDDFactory fac;
 
 
+	public BDD getConstraintBDD() {
+		return constraintBDD;
+	}
 
+	public void setConstraintBDD(BDD constraintBDD) {
+		this.constraintBDD = constraintBDD;
+	}
 
 	/***** Get Methods *******/
+
 
 	public BDDCreator(int nodenum, int cachesize){
 		//fac = JFactory.init(9000000, 9000000);	
@@ -260,6 +268,56 @@ public class BDDCreator {
 		return listEffect;
 	}
 
+	public BDD createOrAndBddWithEffectUncertain(Hashtable<Integer,List<String>> hsteffect) {
+		List<BDD> listEffect = new ArrayList<>();
+		String prop;
+		int index=0;
+
+		BDD andBdd = null;
+		BDD orBdd = null;
+		//effect=null;
+		Set<Integer> key = hsteffect.keySet();
+
+		for (Integer indice: key ) {
+			for (String effectProposition: hsteffect.get(indice)	) {
+				if (andBdd == null){
+					if(effectProposition.startsWith("~")) {
+						prop = effectProposition.substring(1); // without the signal ~
+						index = varTable.get(prop);
+						andBdd = fac.nithVar(index);
+						//effect= bdd;
+
+					} else {
+						index = varTable.get(effectProposition);
+						andBdd = fac.ithVar(index);
+
+					}
+					//effect= bdd;
+				}else{
+					if(effectProposition.startsWith("~")) {
+						prop = effectProposition.substring(1);  // without the signal ~
+						index = varTable.get(prop);
+						andBdd.andWith(fac.nithVar(index));
+					} else {
+						index = varTable.get(effectProposition);
+						andBdd.andWith(fac.ithVar(index));
+					}
+
+				}
+			}
+
+		//	System.out.println(index);
+			if (orBdd == null){
+				orBdd = andBdd;
+			}else
+				orBdd = orBdd.xor(andBdd);
+
+			listEffect.add(andBdd);
+			andBdd = null;
+		}
+
+		return orBdd;
+	}
 
 	/** Create a BDD representing the conjunction of the propositions in readLine */
 	public BDD createAndBdd(String readLine) {
@@ -530,10 +588,16 @@ public class BDDCreator {
 			      list.add(aux);
 
 		}
-	//	System.out.println("Veja aqui a modifica ação: ");
-		//list.forEach(item->item.printDot());
 		return list;
 	}
-
+	/*Creates the constraint bdd */
+	public void createConstraintBDD(String line){
+		BDD constr = createExclusiveOrBdd(line);
+		if(constraintBDD == null){
+			constraintBDD = constr;
+		}else{
+			constraintBDD.andWith(constr);
+		}
+	}
 
 }
