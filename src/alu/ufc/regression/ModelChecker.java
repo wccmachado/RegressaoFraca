@@ -62,7 +62,7 @@ public class ModelChecker {
     public BDD run() {
 
         if (preference.getOperator() == Operator.ALWAYS) {
-            return satEU(this.initialState, this.goalState, preference.getBddProposition());
+            return satEU(initialState, goalState);
             //return satEU(satEG(preference.getBddProposition()), this.goalState);
         }
         // System.out.println("Aqui "+ actionSet.size());
@@ -84,42 +84,49 @@ public class ModelChecker {
 
         while (Z.isZero() == false) {
 
-            aux = Z.and(initialState.id());
+            // aux = Z.and(initialState.id());
             //  System.out.println("and z - initialState");
             // Z.and(initialState.id()).printDot();
 
             // aux.free();
-            aux = Z;
+            //  aux = Z;
 
             Z = regression(Z);
 
 
-            aux.free();
+            //aux.free();
 
             aux = Z;
 
             System.out.println("i = " + i);
-            System.out.println("Aqui -> ");
-            Z.printDot();
+            System.out.println("Aqui regressao -> ");
+            Z.printSet();
+            //Z.printDot();
 
             System.out.println("Reached -> ");
-            reached.printDot();
+            reached.printSet();
+            //reached.printDot();
             // The new reachable states in this layer
             Z = Z.apply(reached, BDDFactory.diff);
             aux.free();
 
-            System.out.println("ABDDFactory.diff ");
-            Z.printDot();
+            System.out.println("regressao - reached ");
+            Z.printSet();
+            // Z.printDot();
             aux = reached;
 
             //Union with the new reachable states
+            System.out.println("Union with the new reachable states: ");
             reached = reached.or(Z);
+            reached.printSet();
             aux.free();
             i++;
         }
         System.out.println("SatEF");
+        // Era apenas reached.printDot.
+        reached.and(constraints).printSet();
 
-        reached.printDot();
+        // reached.printDot();
         return reached;
     }
 
@@ -144,15 +151,15 @@ public class ModelChecker {
      * phi - estado inicial
      * psi - meta
      * */
-    public BDD satEU(BDD phi, BDD psi, BDD pref) {
-        BDD alwaysPrefe = pref;
+    public BDD satEU(BDD phi, BDD psi) {
+        // BDD alwaysPrefe = pref;
 
         BDD W = phi.id();
         BDD meta = psi.id();
         BDD X = null; // -- valor empty (constante).
         BDD reg;
         BDD aux;
-         int i = 0;
+        int i = 0;
 
 
         int j = 0;
@@ -162,28 +169,20 @@ public class ModelChecker {
             System.out.println("camada " + i);
             X = meta;
 
-           // aux = reg;
+            // aux = reg;
+            meta.printSet();
+            reg = regression(meta); //Y
+            System.out.println("regressão na camada: " + i);
+            reg.printSet();
+            //   reg = reg.apply(meta, BDDFactory.diff);
+            // meta = meta.apply(reg,BDDFactory.diff);
+            if (reg == null) {
+                return meta;
+            } else {
+                meta = meta.or(W.and(meta));
+                System.out.println("Meta: ");
                 meta.printSet();
-                reg = regression(meta); //Y
-                System.out.println("regressão na camada: " + i);
-                reg.printSet();
-             //   reg = reg.apply(meta, BDDFactory.diff);
-           // meta = meta.apply(reg,BDDFactory.diff);
-                if (reg == null) {
-                    return meta;
-                } else {
-                        meta = meta.or(reg);
-                        System.out.println("meta = meta.or(reg): " );
-                        meta.printSet();
-
-                        if (!W.and(reg).and(meta).isZero()) {
-                            meta= W.and(reg.and(meta));
-                            System.out.println("Meta: ");
-                            meta.printSet();
-                            return meta;
-                        }
-
-                }
+            }
             i++;
 
         }
@@ -211,8 +210,8 @@ public class ModelChecker {
             teste = regressionFraca(formula, a);
 
             aux = teste;
-			teste = teste.and(constraints);
-			aux.free();
+            teste = teste.and(constraints);
+            aux.free();
 
             if (regFraca == null) {
                 regFraca = teste;
@@ -249,7 +248,6 @@ public class ModelChecker {
             aux.free();
 
             reg = reg.and(a.getPreCondictionBDD()); //precondition(a) ^ E changes(a). test
-
 
 
         }
