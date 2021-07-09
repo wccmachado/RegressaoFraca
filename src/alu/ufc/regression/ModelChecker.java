@@ -208,20 +208,20 @@ public class ModelChecker {
         for (Action a : actionSet) {
 
 
-           // teste = regressionFraca(formula, a);
-            teste2 = regressionForte(formula, a);
+            teste = regressionFraca(formula, a);
+
 
           //  aux = teste;
-            //\teste = teste.and(constraints);
-            teste2 = teste2.and(constraints);
+            teste = teste.and(constraints);
+            //teste2 = teste2.and(constraints);
             //aux.free();
 
             if (regFraca == null) {
-                //regFraca = teste;
-                regForte= teste2;
+                regFraca = teste;
+                //regForte= teste2;
             } else {
-              //  regFraca = regFraca.orWith(teste);
-                regForte = regForte.orWith(teste2);
+                regFraca = regFraca.orWith(teste);
+              //  regForte = regForte.orWith(teste2);
 
             }
 
@@ -235,8 +235,8 @@ public class ModelChecker {
         }
 */
 
-      //  return regFraca.and(constraints);
-        return regForte.and(constraints);
+        return regFraca.and(constraints);
+      //  return regForte.and(constraints);
     }
 
     /* Regression based on action*/
@@ -276,14 +276,17 @@ public class ModelChecker {
           List<BDD> changeSet = new ArrayList<>();
           BDD reg;// aux
 
-
+       // BDD aux1 = getRepresentationPropositionalSetX(a.getTeste());
+       // BDD aux2 = getRepresentationPropositionalSetX(Y);
 
          // listAndBDD = List.copyOf(a.getAndEffetBDD());
 
 
           //checks whether the effects of an action are relevant
+          //aux1.imp(aux2).and(constraints).apply(aux2,BDDFactory.diff)
           //reg = a.getOrEffect(listAndBDD).imp(Y); //(Y ^ effect(a))
-          reg = a.getTeste().imp(Y);
+          reg = a.getTeste().imp(Y).and(constraints);
+          reg = reg.apply(Y,BDDFactory.diff);
 
           //System.out.println("Name action :" + a.getName());
           //System.out.println("Precondiction :");
@@ -351,13 +354,36 @@ public class ModelChecker {
 
 
      public BDD getRepresentationPropositionalSetX( BDD formulaInitial){
-        BDD aux=null;
+        BDD aux=null, representation=null;
          for (int i = 0; i < formulaInitial.allsat().size(); i++) {
-             formulaInitial.allsat().get(i);
-            // if (formulaInitial.allsat().get())
+              byte[] arrByte = (byte[]) formulaInitial.allsat().get(i);
+             for (int j = 0; j < arrByte.length ; j++) {
+                    if (arrByte[j]==-1){
+                        if (j==0) {
+                            aux = formulaInitial.getFactory().ithVar(0).not();
+                        }else {
+                            aux= aux.and(formulaInitial.getFactory().ithVar(j).not());
+                        }
+                 }else{
+                        if (j==0) {
+                            aux = formulaInitial.getFactory().ithVar(0).not();
+                        }else {
+                            if (arrByte[j] == 0) {
+                                aux = aux.and(formulaInitial.getFactory().ithVar(j).not());
+                            } else {
+                                aux = aux.and(formulaInitial.getFactory().ithVar(j));
+                            }
+                        }
+                    }
+
+             }
+             if (representation == null){
+                 representation= aux;
+             } else
+                 representation = representation.or(aux);
          }
 
-        return aux;
+        return representation;
 
     }
 
