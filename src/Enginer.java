@@ -9,7 +9,7 @@ public class Enginer {
 
         //rovers-01-GROUNDED3.txt
         // String fileName = "ArquivoGoal.txt"; VersaoTeste2
-        String fileName = "exemploAlways.txt";
+        String fileName = "exemploAlwaysSolutionFraca.txt";
        // String fileName = "ArquivoTestePreferencesAlways02.txt";
         String fileCanonicalPath = new File(/*PATH +*/ fileName /*+ "_" + cont + ".txt"*/).getCanonicalPath();
 
