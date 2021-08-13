@@ -199,5 +199,8 @@ public class ModelReader {
 	public List<BDD> getBDDPropositions(){
 		return bddCreator.getListPropositionBDD();
 	}
+	public BDD getPredicatesBDD(BDD X){
+		return bddCreator.getBDDPrepositionalX(X);
+	}
 	
 }

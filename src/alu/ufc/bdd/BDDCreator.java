@@ -21,6 +21,7 @@ public class BDDCreator {
 	private transient BDD preCondiction;
 	private transient BDD effect;
 
+
 	private Vector<Integer> propGoal = new Vector<Integer>();
 			
 	//Associates the name of the variable to its position in the BDD VariableSet
@@ -32,7 +33,6 @@ public class BDDCreator {
 	private Vector<Action> actionsSet = new Vector<Action>();
 	private BDDFactory fac;
 
-
 	public BDD getConstraintBDD() {
 		return constraintBDD;
 	}
@@ -42,7 +42,6 @@ public class BDDCreator {
 	}
 
 	/***** Get Methods *******/
-
 
 	public BDDCreator(int nodenum, int cachesize){
 		//fac = JFactory.init(9000000, 9000000);	
@@ -246,6 +245,7 @@ public class BDDCreator {
 						index = varTable.get(effectProposition);
 						bdd = fac.ithVar(index);
 
+
 					}
 					//effect= bdd;
 				}else{
@@ -291,6 +291,7 @@ public class BDDCreator {
 						index = varTable.get(effectProposition);
 						andBdd = fac.ithVar(index);
 
+
 					}
 					//effect= bdd;
 				}else{
@@ -301,6 +302,7 @@ public class BDDCreator {
 					} else {
 						index = varTable.get(effectProposition);
 						andBdd.andWith(fac.ithVar(index));
+
 					}
 
 				}
@@ -598,6 +600,21 @@ public class BDDCreator {
 		}else{
 			constraintBDD.andWith(constr);
 		}
+	}
+
+	/* Create a BDD with all predicates*/
+	public BDD getBDDPrepositionalX( BDD bdd){
+		BDD aux = null;
+		for (int i  = 0;  i <  varTable.size();  i++) {
+			if (i==0)
+				aux = fac.ithVar(i).not();
+			else
+				if (i==bdd.var())
+					aux = aux.and(bdd);
+				else
+				   aux = aux.and(fac.ithVar(i).not());
+		}
+		return aux;
 	}
 
 }

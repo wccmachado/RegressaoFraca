@@ -8,9 +8,9 @@ public class Enginer {
     public static void main(String[] args) throws IOException {
 
         //rovers-01-GROUNDED3.txt
-        // String fileName = "ArquivoGoal.txt"; VersaoTeste2
-        String fileName = "exemploAlwaysSolutionFraca.txt";
-       // String fileName = "ArquivoTestePreferencesAlways02.txt";
+        // String fileName = "ArquivoGoal.txt"; VersaoTeste2 exemploAlwaysWithSolutionFortem
+        String fileName = "File4.txt";
+       // String fileName = "ArquivoTestePreferencesAlways02.txt"; File4EstadoInicialAlterado
         String fileCanonicalPath = new File(/*PATH +*/ fileName /*+ "_" + cont + ".txt"*/).getCanonicalPath();
 
 
