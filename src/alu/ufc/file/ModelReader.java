@@ -135,9 +135,9 @@ public class ModelReader {
 		}		
 	}
 	
-	//public String getType() {
-	//	return type;
-	//}
+	public  BDD getAndPreducates(){
+		return bddCreator.getAndPredicates();
+	}
 	public BDD getConstraints(){
 		return bddCreator.getConstraintBDD();
 	}

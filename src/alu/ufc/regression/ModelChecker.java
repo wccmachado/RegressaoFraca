@@ -5,7 +5,6 @@ import alu.ufc.bdd.BDDCreator;
 import alu.ufc.file.ModelReader;
 import alu.ufc.model.Grafo;
 import alu.ufc.model.Vertex;
-import alu.ufc.preference.AlwaysPreference;
 import alu.ufc.preference.Operator;
 import alu.ufc.preference.Preference;
 import com.sun.source.tree.NewArrayTree;
@@ -19,7 +18,6 @@ public class ModelChecker {
 
     List<BDD> lstRegression = new ArrayList<>();
     int indexlstRegression = 0;
-    private  AlwaysPreference alwaysPreference;
     private Preference preference;
     private Vector<Action> actionSet;
     private ModelReader model;
@@ -32,8 +30,6 @@ public class ModelChecker {
     private BDD init;
     private List<BDD> listaProposition;
 
-    private BDD preferenceBDD;
-
     private Hashtable<Integer, List<String>> politic = new Hashtable<>();
     private List<String> lstNameActionPolitic = new ArrayList<>();
     private int indexForPolitic = 0;
@@ -45,10 +41,13 @@ public class ModelChecker {
     private List<String> actionRelevante = new ArrayList<>();
 
     private String nameAction = "";
-    // private  boolean isRegeForte = true;
-    private boolean isRegFraca = true;
+    private  boolean isRegeForte = true;
 
-  /* Constructor */
+
+    private boolean isAlways = true;
+
+    //private  Hashtable<String,Integer> varTable = new Hashtable<String,Integer>();
+    /* Constructor */
     public ModelChecker(ModelReader model) {
         this.model = model;
         this.constraints = model.getConstraints();
@@ -59,14 +58,12 @@ public class ModelChecker {
         this.preference = model.getPreference();
         this.auxiliar = model.getAuxiliarBDD();
         this.listaProposition = model.getBDDPropositions();
-        this.preferenceBDD = model.getPredicatesBDD(preference.getBddProposition());
-        alwaysPreference = new AlwaysPreference(this.actionSet,this.goalState,this.initialState,this.constraints,this.auxiliar);
     }
 
     public BDD run() {
+
         if (preference.getOperator() == Operator.ALWAYS) {
-            //return alwaysPreference.satEG(preference.getBddProposition());
-            return alwaysPreference.satEU(satEG(preference.getBddProposition()),goalState);
+            return satEF(goalState);
             //return satEU(satEG(preference.getBddProposition()), this.goalState);
         }
         // System.out.println("Aqui "+ actionSet.size());
@@ -88,7 +85,17 @@ public class ModelChecker {
 
         while (Z.isZero() == false) {
 
+            // aux = Z.and(initialState.id());
+            //  System.out.println("and z - initialState");
+            // Z.and(initialState.id()).printDot();
+
+            // aux.free();
+            //  aux = Z;
+
             Z = regression(Z);
+
+
+            //aux.free();
 
             aux = Z;
 
@@ -124,118 +131,126 @@ public class ModelChecker {
         return reached;
     }
 
-    public BDD satEG(BDD phi) {
-        BDD preference = preferenceBDD;
-        BDD X = phi.and(this.goalState);
+/*	public BDD satEG(BDD phi) {
+		BDD X = phi;
+		BDD Y = auxiliar; //One BDD -- any initialization
+		BDD reg;
+		while(X.equals(Y) == false) {
+			Y = X;
+			reg = regression(X); 
+			if(reg == null) {
+				return X;
+			} else {
+				X = X.and(reg);
+			}
+		}
+		return X;
+	}*/
 
-        BDD Y = auxiliar; //One BDD -- any initialization
-        BDD reg;
-        int i = 1;
-        while (X.equals(Y) == false) {
-            Y = X;
-            System.out.println("Quantidade de regressoes " + i);
-            reg = regression(X);
-            reg.printSet();
-            if (reg == null) {
-                return X;
-            } else {
-                X = phi.and(reg);
-            }
-            i++;
-        }
-        return X;
-    }
 
     /*
      * phi - estado inicial
      * psi - meta
      * */
     public BDD satEU(BDD phi, BDD psi) {
+        // BDD alwaysPrefe = pref;
 
         BDD W = phi.id();
-        BDD Y = psi.id();
+        BDD meta = psi.id();
         BDD X = null; // -- valor empty (constante).
         BDD reg;
         BDD aux;
         int i = 0;
 
+
         int j = 0;
         System.out.println("Computando EU");
 
-        while ((X == null) || (!X.equals(Y))) {
+        while ((X == null) || (!X.equals(meta))) {
             System.out.println("camada " + i);
-            X = Y;
+            X = meta;
 
             // aux = reg;
-            Y.printSet();
-            reg = regression(Y); //Y
+            meta.printSet();
+            reg = regression(meta); //Y
             System.out.println("regressão na camada: " + i);
-
             reg.printSet();
-
+            //   reg = reg.apply(meta, BDDFactory.diff);
+            // meta = meta.apply(reg,BDDFactory.diff);
             if (reg == null) {
-                return Y;
+                return meta;
             } else {
-                Y = Y.or(W.and(Y));
+                meta = meta.or(W.and(meta));
                 System.out.println("Meta: ");
-                Y.printSet();
+                meta.printSet();
             }
             i++;
 
         }
+        System.out.println("Y");
+        meta.printSet();
+        System.out.println("Não achou");
+
 
         System.out.println("Quantidade de passos: " + i);
 
-        return Y;
+        return meta;
     }
 
     /* Deterministic Regression of a formula by a set of actions */
     public BDD regression(BDD formula) {//BDD formula
-        BDD aux = null;
+        BDD auxteste = null;
         BDD regFraca = null;
-        BDD regForte = null;
-        BDD output = null;
+        BDD teste = null, regForte = null, teste2 = null;
+        BDD aux = null;
 
-        if (isRegFraca == true) {
-            for (Action a : actionSet) {
-                aux = regressionFraca(formula, a);
 
-                if (regFraca == null) {
-                    regFraca = aux;
+        for (Action a : actionSet) {
 
-                } else {
-                    regFraca = regFraca.orWith(aux);
-                    output = regFraca;
 
-                }
-            }
-        }else{
-            for (Action a : actionSet) {
-                aux = regressionForte(formula, a);
+            teste = regressionFraca(formula, a);
 
-                if (regForte == null) {
-                    regForte = aux;
 
-                } else {
-                    regForte = regForte.orWith(aux);
-                    output = regForte;
-                }
+          //  aux = teste;
+            teste = teste.and(constraints);
+            //teste2 = teste2.and(constraints);
+            //aux.free();
+
+            if (regFraca == null) {
+                regFraca = teste;
+                //regForte= teste2;
+            } else {
+                regFraca = regFraca.orWith(teste);
+              //  regForte = regForte.orWith(teste2);
+
             }
 
         }
 
         nameAction = "";
+     /*   if (isRegeForte == true) {
+            System.out.println("Regressao forte:  ---> ");
+            regForte.and(constraints).printSet();
+            return regForte.and(constraints);
+        }
+*/
 
-        return output;
+        return regFraca.and(constraints);
+      //  return regForte.and(constraints);
     }
 
     /* Regression based on action*/
     public BDD regressionFraca(BDD Y, Action a) {
+
         BDD reg, aux;
 
-        reg = Y.and(a.getOrAndEffect());// (Y ^ effect(a)) reg.apply(Y, BDDFactory.diff).equals(a.getOrAndEffect())
+        reg = Y.and(a.getTeste());// (Y ^ effect(a))
+        aux = reg;
+        reg = reg.and(constraints);
+        aux.free();
 
-        if (reg.isZero()==false) {
+
+        if (reg.isZero() == false) {
 
             System.out.println("Name action relevant:" + a.getName());
             aux = reg;
@@ -246,32 +261,50 @@ public class ModelChecker {
 
             reg = reg.and(a.getPreCondictionBDD()); //precondition(a) ^ E changes(a). test
 
+
         }
-//        else {
-//            System.out.println("Action no relevant:" + a.getName());
-//            reg = reg.apply(Y, BDDFactory.diff);
-//        }
+
+
         return reg;
     }
 
-    public BDD regressionForte(BDD Y, Action a) {
-        BDD reg;// aux
+      public BDD regressionForte(BDD Y, Action a) {
 
-        reg = a.getOrAndEffect().imp(Y).and(constraints);
+          // stores the conjunction of the propositions
+          List<BDD> listAndBDD = new ArrayList<>();
+          //List<BDD> listAndBDD = new ArrayList<>();
+          List<BDD> changeSet = new ArrayList<>();
+          BDD reg;// aux
 
-        reg = reg.apply(Y, BDDFactory.diff);
+       // BDD aux1 = getRepresentationPropositionalSetX(a.getTeste());
+       // BDD aux2 = getRepresentationPropositionalSetX(Y);
+
+         // listAndBDD = List.copyOf(a.getAndEffetBDD());
 
 
-        if (reg.isZero() == false) {
-            for (BDD bdd : a.modifyAction()) {
-                reg = reg.forAll(bdd);//qbf computation
-            }
-            reg = reg.and(a.getPreCondictionBDD()); //precondition(a) ^ E changes(a). test
-            System.out.println("Nome da ação : " + a.getName());
-        }
+          //checks whether the effects of an action are relevant
+          //aux1.imp(aux2).and(constraints).apply(aux2,BDDFactory.diff)
+          //reg = a.getOrEffect(listAndBDD).imp(Y); //(Y ^ effect(a))
+          reg = a.getTeste().imp(Y).and(constraints);
+          reg = reg.apply(Y,BDDFactory.diff);
 
-        return reg;
-    }
+          //System.out.println("Name action :" + a.getName());
+          //System.out.println("Precondiction :");
+          //a.getPreCondictionBDD().printDot();
+
+
+          if (reg.isZero() == false) {
+
+              changeSet.addAll(a.modifyAction());
+              for (BDD bdd : changeSet) {
+                  reg = reg.forAll(bdd);//qbf computation
+              }
+              reg = reg.and(a.getPreCondictionBDD()); //precondition(a) ^ E changes(a). test
+              System.out.println("Nome da ação : " + a.getName());
+          }
+
+          return reg;
+      }
 
     private void politica() {
         Set<Integer> key = politic.keySet();
@@ -320,7 +353,7 @@ public class ModelChecker {
 */
 
 
-     /*public BDD getRepresentationPropositionalSetX( BDD formulaInitial){
+     public BDD getRepresentationPropositionalSetX( BDD formulaInitial){
         BDD aux=null, representation=null;
          for (int i = 0; i < formulaInitial.allsat().size(); i++) {
               byte[] arrByte = (byte[]) formulaInitial.allsat().get(i);
@@ -352,8 +385,7 @@ public class ModelChecker {
 
         return representation;
 
-    }*/
-
+    }
 
 
     /*  private  void printRegression(){

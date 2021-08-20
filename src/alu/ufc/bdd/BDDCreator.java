@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 public class BDDCreator {
 	//Number of propositions (including variables v and v')
 	private int propNum = 0;
+	private BDD andPredicates;
 	private transient BDD initialStateBDD;
 	private transient BDD goalBDD;
 	private transient BDD constraintBDD=null;
@@ -32,6 +33,14 @@ public class BDDCreator {
 
 	private Vector<Action> actionsSet = new Vector<Action>();
 	private BDDFactory fac;
+
+	public BDD getAndPredicates() {
+		return andPredicates;
+	}
+
+	public void setAndPredicates(BDD andPredicates) {
+		this.andPredicates = andPredicates;
+	}
 
 	public BDD getConstraintBDD() {
 		return constraintBDD;
@@ -164,6 +173,10 @@ public class BDDCreator {
 		for (int i = 0; i < propNum; i++) {
 			propName = tknProp.nextToken();
 			varTable.put(propName,i);
+			if (i == 0)
+				andPredicates = fac.ithVar(i);
+			else
+				andPredicates = andPredicates.and(fac.ithVar(i));
 		}
 		
 	}
