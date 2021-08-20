@@ -51,8 +51,8 @@ public class AlwaysPreference {
             if (reg == null) {
                 return X;
             } else {
-                //X = X.and(reg);
-                X= reg;
+                X = X.and(reg);
+               // X= reg;
             }
             i++;
         }
