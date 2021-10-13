@@ -20,9 +20,9 @@ public class AlwaysPreference {
     private BDD constraints;
     private BDD auxiliar;
     private BDD preference;
-    private boolean isSatEU= false;
+    private boolean isSatEU = false;
 
-    private boolean isRegFraca = false;
+    private boolean isRegFraca = true;
 
 
     public AlwaysPreference(Vector<Action> actionSet, BDD goalState, BDD initialState, BDD constraints, BDD auxiliar) {
@@ -43,16 +43,15 @@ public class AlwaysPreference {
         int i = 1;
         while (X.equals(Y) == false) {
             Y = X;
+            //  X = X.and(X.getFactory().ithVar(0).not()).and(X.getFactory().ithVar(1).not()).and(X.getFactory().ithVar(2).not()).and(X.getFactory().ithVar(3).not()).and(X.getFactory().ithVar(5).not()).and(X.getFactory().ithVar(6).not());
             System.out.println("Quantidade de regressoes " + i);
             reg = regression(X);
             reg.printSet();
-           // System.out.println("Aqui ---> ");
-            //aux.printSet();
+
             if (reg == null) {
                 return X;
             } else {
                 X = X.and(reg);
-               // X= reg;
             }
             i++;
         }
@@ -60,7 +59,7 @@ public class AlwaysPreference {
     }
 
     public BDD satEU(BDD phi, BDD psi) {
-     //   isSatEU=true;
+        //   isSatEU=true;
         BDD W = phi.id();
         BDD Y = psi.id();
         BDD X = null; // -- valor empty (constante).
@@ -103,52 +102,29 @@ public class AlwaysPreference {
         BDD regForte = null;
         BDD output = null;
 
-
-            for (Action a : actionSet) {
-                if (isRegFraca == true) {
-                    aux = regressionFraca(formula, a);
-                }else{
-                    aux = regressionForte(formula, a);
-                }
-                //if (isSatEU == false) {
-                 //   aux2 = aux.and(preference);
-                   // if (aux2.equals(aux)) {
-                        if (regFraca == null) {
-                            regFraca = aux;
-                        } else {
-                            regFraca = regFraca.orWith(aux);
-                        }
-                        output = regFraca;
-                  //  }
-               // }
-           // }
-        /*}else{
-            for (Action a : actionSet) {
+        for (Action a : actionSet) {
+            if (isRegFraca == true) {
+                aux = regressionFraca(formula, a);
+            } else {
                 aux = regressionForte(formula, a);
-               // aux2 = aux.and(preference);
-              //  if (aux2.equals(aux)) {
-                    if (regForte == null) {
-                        regForte = aux;
-
-                    } else {
-                        regForte = regForte.orWith(aux);
-                    }
-                    output = regForte;
-                }
-           // }*/
-
+            }
+            if (output == null) {
+                output = aux;
+            } else {
+                output = output.orWith(aux);
+            }
+           // output = regFraca;
         }
-
         return output;
     }
 
     /* Regression based on action*/
     public BDD regressionFraca(BDD Y, Action a) {
-        BDD reg, aux;
+        BDD reg=null, aux=null;
 
         reg = Y.and(a.getOrAndEffect());// (Y ^ effect(a)) reg.apply(Y, BDDFactory.diff).equals(a.getOrAndEffect())
 
-        if (reg.isZero()==false) {
+        if (reg.isZero() == false) {
             System.out.println("Name action relevant:" + a.getName());
             aux = reg;
             for (BDD bdd : a.modifyAction()) {
@@ -171,10 +147,10 @@ public class AlwaysPreference {
             for (BDD bdd : a.modifyAction()) {
                 reg = reg.forAll(bdd);//qbf computation
             }
-            if (reg.isZero()==false)
+            if (reg.isZero() == false)
                 System.out.println("Name action relevant:" + a.getName());
 
-                reg = reg.and(a.getPreCondictionBDD()); //precondition(a) ^ E changes(a). test
+            reg = reg.and(a.getPreCondictionBDD()); //precondition(a) ^ E changes(a). test
         }
         return reg.and(constraints);
     }

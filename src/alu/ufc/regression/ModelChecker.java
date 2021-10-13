@@ -66,12 +66,9 @@ public class ModelChecker {
     public BDD run() {
         if (preference.getOperator() == Operator.ALWAYS) {
             //return alwaysPreference.satEG(preference.getBddProposition());
-            return alwaysPreference.satEU(satEG(preference.getBddProposition()),goalState);
+            return alwaysPreference.satEU(alwaysPreference.satEG(preference.getBddProposition()),goalState);
             //return satEU(satEG(preference.getBddProposition()), this.goalState);
         }
-        // System.out.println("Aqui "+ actionSet.size());
-        //rr BDD bdd = preference.getBddProposition();
-        //return satEU(satEF(preference.getBddProposition()), this.goalState);
 
         return null;// satEU(satEF(preference.getBddProposition()), this.goalState);
     }
