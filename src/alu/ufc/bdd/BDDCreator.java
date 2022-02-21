@@ -296,11 +296,13 @@ public class BDDCreator {
 				if (andBdd == null){
 					if(effectProposition.startsWith("~")) {
 						prop = effectProposition.substring(1); // without the signal ~
+						//System.out.println("estar " + prop);
 						index = varTable.get(prop);
 						andBdd = fac.nithVar(index);
 						//effect= bdd;
 
 					} else {
+						//System.out.println("erro " + effectProposition);
 						index = varTable.get(effectProposition);
 						andBdd = fac.ithVar(index);
 
@@ -325,7 +327,7 @@ public class BDDCreator {
 			if (orBdd == null){
 				orBdd = andBdd;
 			}else
-				orBdd = orBdd.xor(andBdd);
+				orBdd = orBdd.or(andBdd);
 
 			listEffect.add(andBdd);
 			andBdd = null;

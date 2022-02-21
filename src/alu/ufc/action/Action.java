@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 public class Action {
     private String name;
+
     private String preCond;
 
     private List<String> listPropositionPreCondition = new ArrayList<>();
@@ -125,8 +126,7 @@ public class Action {
     public Hashtable<Integer,List<String> > getListPrepositionOfEffect(){
 
         int count=0;
-        for (String item : listEffect
-             ) {
+        for (String item : listEffect   ) {
 
             hstListPrepositionEffect.put(count, preposition.getListPreposition(item, "\\,"));
             count++;

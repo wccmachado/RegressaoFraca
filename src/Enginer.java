@@ -1,18 +1,16 @@
+
 import alu.ufc.file.ModelReader;
 import alu.ufc.regression.ModelChecker;
 
 import java.io.File;
 import java.io.IOException;
+//import alu.ufc.data;
 
 public class Enginer {
     public static void main(String[] args) throws IOException {
+        String fileName = "file10NaoDeterministicoComPreferenciasVerssaoAlterada.txt";
 
-        //rovers-01-GROUNDED3.txt
-        // String fileName = "ArquivoGoal.txt"; VersaoTeste2 exemploAlwaysWithSolutionFortem
-        String fileName = "File4.txt";
-       // String fileName = "ArquivoTestePreferencesAlways02.txt"; File4EstadoInicialAlterado
         String fileCanonicalPath = new File(/*PATH +*/ fileName /*+ "_" + cont + ".txt"*/).getCanonicalPath();
-
 
         int nodenum = 999999; //Integer.parseInt(args[2]);
         int cachesize =  999999; //Integer.parseInt(args[3]);
@@ -27,7 +25,7 @@ public class Enginer {
         ModelChecker mdc = new ModelChecker(model);
 
 
-       // System.out.println("Aqui está a solução: ");
+
         mdc.run();
 
 

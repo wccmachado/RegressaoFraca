@@ -36,16 +36,13 @@ public class ModelChecker {
 
     private Hashtable<Integer, List<String>> politic = new Hashtable<>();
     private List<String> lstNameActionPolitic = new ArrayList<>();
-    private int indexForPolitic = 0;
+
 
     private Hashtable<Integer, List<BDD>> statesReached = new Hashtable<>();
     private List<BDD> lstStatesReached = new ArrayList<>();
-    private int indexForStatesReached = 0;
-
-    private List<String> actionRelevante = new ArrayList<>();
 
     private String nameAction = "";
-    // private  boolean isRegeForte = true;
+
     private boolean isRegFraca = true;
 
     /* Constructor */
@@ -59,86 +56,82 @@ public class ModelChecker {
         this.preference = model.getPreference();
         this.auxiliar = model.getAuxiliarBDD();
         this.listaProposition = model.getBDDPropositions();
-        this.preferenceBDD = model.getPredicatesBDD(preference.getBddProposition());
+    //    this.preferenceBDD = model.getPredicatesBDD(preference.getBddProposition());
         alwaysPreference = new AlwaysPreference(this.actionSet,this.goalState,this.initialState,this.constraints,this.auxiliar);
     }
 
     public BDD run() {
-        if (preference.getOperator() == Operator.ALWAYS) {
-            //return alwaysPreference.satEG(preference.getBddProposition());
-            return alwaysPreference.satEU(alwaysPreference.satEG(preference.getBddProposition()),goalState);
-            //return satEU(satEG(preference.getBddProposition()), this.goalState);
+        try {
+            if (preference.getOperator() == Operator.always) {
+              //  long start = System.currentTimeMillis();
+                BDD out  =alwaysPreference.satEG(preference.getBddProposition());
+                        //alwaysPreference.satEU(alwaysPreference.satEG(preference.getBddProposition()),this.goalState);
+              //  long elapsed = System.currentTimeMillis() - start;
+             //   alwaysPreference.print();
+             //   System.out.println("Tempo de execução: " + elapsed+ "ms");
+                return out;
+            }
+        }catch (NullPointerException ex){
+            System.out.println("Preferência nula: Preferência não pertence ao conjunto P");
         }
 
-        return null;// satEU(satEF(preference.getBddProposition()), this.goalState);
+       return null;// sa'tEU(satEF(preference.getBddProposition()), this.goalState);
     }
 
     public BDD satEF(BDD phi) {//BDD phi
 
         System.out.println("Computando EF");
-        phi.printDot();
         BDD reached = phi;
         BDD Z = reached.id(); // Only new states reached
-        Z.printDot();
         BDD aux;
         int i = 0;
 
         while (Z.isZero() == false) {
 
+            System.out.println("i = " + i);
+            aux = Z.and(initialState.id());
+
+            aux.free();
+            aux = Z;
             Z = regression(Z);
+            aux.free();
 
             aux = Z;
-
-            System.out.println("i = " + i);
-            System.out.println("Aqui regressao -> ");
-            Z.printSet();
-            //Z.printDot();
-
-            System.out.println("Reached -> ");
-            reached.printSet();
-            //reached.printDot();
-            // The new reachable states in this layer
-            Z = Z.apply(reached, BDDFactory.diff);
+            Z = Z.apply(reached, BDDFactory.diff); // The new reachable states in this layer
             aux.free();
 
-            System.out.println("regressao - reached ");
-            Z.printSet();
-            // Z.printDot();
             aux = reached;
-
-            //Union with the new reachable states
-            System.out.println("Union with the new reachable states: ");
-            reached = reached.or(Z).and(constraints);
-            reached.printSet();
+            reached = reached.or(Z); //Union with the new reachable states
             aux.free();
+
+			/*aux = reached;
+			reached = reached.and(constraints);
+			aux.free();*/
+
             i++;
         }
         System.out.println("SatEF");
-        // Era apenas reached.printDot.
-        reached.and(constraints).printSet();
-
-        // reached.printDot();
+      //  reached.printDot();
         return reached;
     }
 
     public BDD satEG(BDD phi) {
-        BDD preference = preferenceBDD;
-        BDD X = phi.and(this.goalState);
+
+        BDD X = phi;
 
         BDD Y = auxiliar; //One BDD -- any initialization
         BDD reg;
-        int i = 1;
+
         while (X.equals(Y) == false) {
             Y = X;
-            System.out.println("Quantidade de regressoes " + i);
             reg = regression(X);
-            reg.printSet();
+          //  reg.printSet();
             if (reg == null) {
                 return X;
             } else {
-                X = phi.and(reg);
+                X = X.and(reg);
             }
-            i++;
+
         }
         return X;
     }
@@ -149,35 +142,26 @@ public class ModelChecker {
      * */
     public BDD satEU(BDD phi, BDD psi) {
 
-        BDD W = phi.id();
-        BDD Y = psi.id();
+        BDD W = phi;
+        BDD Y = psi;
         BDD X = null; // -- valor empty (constante).
         BDD reg;
         BDD aux;
         int i = 0;
-
-        int j = 0;
         System.out.println("Computando EU");
 
-        while ((X == null) || (!X.equals(Y))) {
+        while ((X == null) || (X.equals(Y)==false)) {
             System.out.println("camada " + i);
             X = Y;
-
-            // aux = reg;
-            Y.printSet();
-            reg = regression(Y); //Y
-            System.out.println("regressão na camada: " + i);
-
-            reg.printSet();
+            reg = regression(Y);
 
             if (reg == null) {
                 return Y;
             } else {
-                Y = Y.or(W.and(Y));
-                System.out.println("Meta: ");
-                Y.printSet();
+                Y = Y.or(W.and(reg));
             }
             i++;
+            System.out.println("Camada: " + i);
 
         }
 
@@ -196,7 +180,8 @@ public class ModelChecker {
         if (isRegFraca == true) {
             for (Action a : actionSet) {
                 aux = regressionFraca(formula, a);
-
+              //  System.out.println("printSet ");
+              //  aux.printSet();
                 if (regFraca == null) {
                     regFraca = aux;
 
@@ -244,10 +229,6 @@ public class ModelChecker {
             reg = reg.and(a.getPreCondictionBDD()); //precondition(a) ^ E changes(a). test
 
         }
-//        else {
-//            System.out.println("Action no relevant:" + a.getName());
-//            reg = reg.apply(Y, BDDFactory.diff);
-//        }
         return reg;
     }
 

@@ -2,7 +2,7 @@ package alu.ufc.preference;
 
 public enum Operator {
 
-	ALWAYS(0), SOMETIME(1);
+	always(0), sometime(1);
 	
 	private int valueOp;
     

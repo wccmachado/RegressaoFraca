@@ -83,11 +83,11 @@ public class ModelReader {
 					line = in.readLine(); //read next line
 					preferencesLine = line;
 
-					if(preferencesLine.startsWith("ALWAYS")) {
-						preference = new Preference(Operator.ALWAYS,
+					if(preferencesLine.startsWith("always")) {
+						preference = new Preference(Operator.always,
 								bddCreator.createPreferenceBdd(preferencesLine.substring(7)));
 					} else {
-						preference = new Preference(Operator.SOMETIME,
+						preference = new Preference(Operator.sometime,
 								bddCreator.createPreferenceBdd(preferencesLine.substring(9)));
 					}
 					line = in.readLine();
@@ -113,18 +113,25 @@ public class ModelReader {
 							line = in.readLine(); //<pos><\pos>
 							//System.out.println("fulerage"+line);
 							actionEff = line.substring(line.indexOf(">") + 1, line.indexOf("\\") - 1);
-
+//							if (actionName.equals("drop-rover0-rover0store")){
+//								System.out.println("vamos");
+//							}
 							//System.out.println("Veja "+actionEff);
 							action = new Action(actionName, actionPre, actionEff,bddCreator);
+
 							//System.out.println("Ação: " + action);
 							bddCreator.addAction(action);
 							line = in.readLine(); //<\action>
 							//System.out.println(line);
+
 							line = in.readLine(); //<action>
+
 							//System.out.println("quantidade de ações : " + count++);
+
 						}
 						//action.printAction();
 					}
+
 				}
 
 			}
