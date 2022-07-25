@@ -17,12 +17,12 @@ public class AlwaysPreference {
 
     private transient BDD goalState;
     private transient BDD initialState;
-    private transient BDD constraints;
+    private  transient BDD constraints;//
     private transient BDD auxiliar;
     private transient BDD preference;
     private boolean isSatEU = false;
 
-    private boolean isRegFraca = true;
+    private boolean isRegFraca;
     private boolean isVisitEG= false;
     int i = 0;
 
@@ -49,6 +49,7 @@ public class AlwaysPreference {
         BDD X = phi;
         BDD Y = auxiliar; //One BDD -- any initialization
         BDD reg;
+        isRegFraca=true;
 
 
         while (X.equals(Y) == false) {
@@ -59,8 +60,6 @@ public class AlwaysPreference {
             if (reg == null) {
                 return X;
             } else {
-                System.out.println("Aqui");
-                reg.printDot();
                 X = X.and(reg);
             }
 
@@ -68,16 +67,69 @@ public class AlwaysPreference {
        // isVisitEG=true;
         return X;
     }
+    public BDD satAG(BDD phi) {
+        BDD X = phi;
+        BDD Y = auxiliar; //One BDD -- any initialization
+        BDD reg;
+        isRegFraca=false;
+        i=0;
+
+        System.out.println("Computando AG");
+        while (X.equals(Y) == false) {
+            Y = X;
+
+            reg = regression(X);
+
+            if (reg == null) {
+                return X;
+            } else {
+                X = X.and(reg);
+            }
+            i++;
+        }
+        System.out.println("Quantidade de passos AG: " + i);
+        return X;
+    }
 
     public BDD satEU(BDD phi, BDD psi) {
-        //   isSatEU=true;
+        isRegFraca=true;
         BDD W = phi;
         BDD Y = psi;
         BDD X = null; // -- valor empty (constante).
         BDD reg;
-        BDD aux;
+       // BDD aux;
 
         System.out.println("Computando EU");
+
+        while ((X == null) || (X.equals(Y) == false)) {
+            X = Y;
+            reg = regression(Y); //Y
+
+            if (reg == null) {
+                return Y;
+            } else {
+                Y = Y.or(W.and(reg));
+                if(Y.and(initialState).equals(goalState)){
+                    System.out.println("meta atendida");
+                }
+            }
+            hstOutput.put(i,lstAction);
+            i++;
+        }
+        System.out.println("Quantidade de passos: " + i);
+
+        return Y;
+    }
+
+    public BDD satAU(BDD phi, BDD psi) {
+        isRegFraca=false;
+        BDD W = phi;
+        BDD Y = psi;
+        BDD X = null; // -- valor empty (constante).
+        BDD reg;
+        // BDD aux;
+
+        System.out.println("Computando AU");
 
         while ((X == null) || (X.equals(Y) == false)) {
             X = Y;
@@ -91,17 +143,16 @@ public class AlwaysPreference {
             hstOutput.put(i,lstAction);
             i++;
         }
-        System.out.println("Quantidade de passos: " + i);
+        System.out.println("Quantidade de passos AU: " + i);
 
         return Y;
     }
+
 
     /* Deterministic Regression of a formula by a set of actions */
     public BDD regression(BDD formula) {//BDD formula
         BDD aux = null;
         BDD aux2 = null;
-        BDD regFraca = null;
-        BDD regForte = null;
         BDD output = null;
         lstAction = new ArrayList<>();
         for (Action a : actionSet) {
@@ -123,15 +174,13 @@ public class AlwaysPreference {
     public BDD regressionFraca(BDD Y, Action a) {
         BDD reg = null, aux = null;
         reg = Y.and(a.getOrAndEffect());// (Y ^ effect(a)) reg.apply(Y, BDDFactory.diff).equals(a.getOrAndEffect())
-
-
         if (reg.isZero() == false) {
-          // if (isVisitEG ){
-              System.out.println("Precondiction" +"\n"+ a.getPreCondictionBDD()+ "*****");
+             // System.out.println("Precondiction" +"\n"+ a.getPreCondictionBDD()+ "*****");
               System.out.println("Action " + a.getName());
-           //   lstAction.add(a.getName());
-          // }
-
+              if (a.getName().equals("communicate_soil_data-rover0-general-waypoint3-waypoint3-waypoint0"))
+              {
+                  System.out.println("Pare");
+              }
 
             aux = reg;
             for (BDD bdd : a.modifyAction()) {
@@ -154,8 +203,8 @@ public class AlwaysPreference {
             for (BDD bdd : a.modifyAction()) {
                 reg = reg.forAll(bdd);//qbf computation
             }
-            if (reg.isZero() == false)
-                System.out.println("Name action relevant:" + a.getName());
+           // if (reg.isZero() == false)
+             //   System.out.println("Name action relevant:" + a.getName());
 
             reg = reg.and(a.getPreCondictionBDD()); //precondition(a) ^ E changes(a). test
         }

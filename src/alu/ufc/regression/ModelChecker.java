@@ -63,16 +63,18 @@ public class ModelChecker {
     public BDD run() {
         try {
             if (preference.getOperator() == Operator.always) {
-              //  long start = System.currentTimeMillis();
-                BDD out  =alwaysPreference.satEG(preference.getBddProposition());
-                        //alwaysPreference.satEU(alwaysPreference.satEG(preference.getBddProposition()),this.goalState);
-              //  long elapsed = System.currentTimeMillis() - start;
+                long start = System.currentTimeMillis();
+                alwaysPreference.satEG(preference.getBddProposition());
+                BDD out  =   alwaysPreference.satEU(preference.getBddProposition(),this.goalState);
+               // alwaysPreference.satAG(out);
+               // BDD out  =   alwaysPreference.satAU(preference.getBddProposition(),this.goalState);
+                long elapsed = System.currentTimeMillis() - start;
              //   alwaysPreference.print();
-             //   System.out.println("Tempo de execução: " + elapsed+ "ms");
+                System.out.println("Tempo de execução: " + elapsed+ "ms");
                 return out;
             }
         }catch (NullPointerException ex){
-            System.out.println("Preferência nula: Preferência não pertence ao conjunto P");
+            System.out.println("Preferência nula: Preferência não pertence ao conjunto P" + ex.getCause() + " problema " + ex.getMessage());
         }
 
        return null;// sa'tEU(satEF(preference.getBddProposition()), this.goalState);
