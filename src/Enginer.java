@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class Enginer {
     public static void main(String[] args) throws IOException {
-        String fileName = "p03-Always2.txt";
+        String fileName = "p07Always1.pddl";
 
         String fileCanonicalPath = new File(fileName /*+ "_" + cont + ".txt"*/).getCanonicalPath();
 

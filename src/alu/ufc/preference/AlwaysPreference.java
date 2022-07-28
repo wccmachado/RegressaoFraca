@@ -177,7 +177,7 @@ public class AlwaysPreference {
         if (reg.isZero() == false) {
              // System.out.println("Precondiction" +"\n"+ a.getPreCondictionBDD()+ "*****");
               System.out.println("Action " + a.getName());
-              if (a.getName().equals("communicate_soil_data-rover0-general-waypoint3-waypoint3-waypoint0"))
+              if (a.getName().equals("sample_rock-rover0-rover0store-waypoint10"))
               {
                   System.out.println("Pare");
               }
