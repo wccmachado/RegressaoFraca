@@ -5249,7 +5249,6 @@ always-at_soil_sample-waypoint19
 <pre>at-rover0-waypoint0,available-rover0<\pre>
 <pos>~at-rover0-waypoint0,at-rover0-waypoint9<\pos>
 <\action>
-<\action>
 <action>
 <name>navigate-waypoint2-waypoint11-waypoint1<\name>
 <pre>at-rover0-waypoint2,available-rover0<\pre>
