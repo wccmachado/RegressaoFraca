@@ -3,6 +3,7 @@ package alu.ufc.bdd;
 import alu.ufc.action.Action;
 import net.sf.javabdd.BDD;
 import net.sf.javabdd.BDDFactory;
+import net.sf.javabdd.BDDPairing;
 import net.sf.javabdd.JFactory;
 
 import java.io.IOException;
@@ -16,6 +17,7 @@ public class BDDCreator {
     private transient BDD initialStateBDD;
     private transient BDD goalBDD;
     private transient BDD constraintBDD = null;
+    private transient BDD constraintStoreBDD = null;
     private transient BDD initBDD;
 
     //private transient Action action;
@@ -376,14 +378,14 @@ public class BDDCreator {
             tknPiece = tkn.nextToken();
             //System.out.println("tknPiece: " + tknPiece);
             if (tknPiece.startsWith("~")) {
-               // System.out.println("Olha aqui erro -----> tknPiece: " + tknPiece);
+                // System.out.println("Olha aqui erro -----> tknPiece: " + tknPiece);
                 prop = tknPiece.substring(1);  // without the signal ~
-             //   if (prop.equals("communicated_image_data-objective1-colour")) {
-             //       System.out.println("Erro");
-            //    }
+                //   if (prop.equals("communicated_image_data-objective1-colour")) {
+                //       System.out.println("Erro");
+                //    }
                 index = varTable.get(prop);
                 bdd.andWith(fac.nithVar(index));
-                if (bdd.isZero()){
+                if (bdd.isZero()) {
                     System.out.println("Danado" + prop);
 
                 }
@@ -391,7 +393,7 @@ public class BDDCreator {
             } else {
                 index = varTable.get(tknPiece);
                 bdd.andWith(fac.ithVar(index));
-                if (bdd.isZero()){
+                if (bdd.isZero()) {
                     System.out.println("Danado 2" + tknPiece);
 
                 }
@@ -459,37 +461,37 @@ public class BDDCreator {
         }
         return bdd;
     }
-    public BDD createOrBddConstraint(String readLine, Set store, int indexBdd) {
-        StringTokenizer tkn = new StringTokenizer(readLine, ",");
-        String tknPiece = tkn.nextToken().trim();
-        int index;
-        BDD bdd = null;
-        boolean isFlag= false;
-        index = varTable.get(tknPiece);
-        bdd = fac.ithVar(index);
-
-            while (tkn.hasMoreTokens()) {
-                tknPiece = tkn.nextToken();
-                index = varTable.get(tknPiece);
-
-                if (((index == indexBdd) && (isFlag == false))) {
-                    bdd.orWith(fac.ithVar(index).not());
-                    isFlag = true;
-                } else if (store.contains(tknPiece) && (isFlag == false) && (!tkn.hasMoreTokens())) {
-                    if ((index != indexBdd)) {
-                        bdd.orWith(fac.ithVar(indexBdd).not());
-                        isFlag = true;
-                        System.out.println("DUDUUUUU");
-                    }else {
-                        bdd.orWith(fac.ithVar(index).not());
-                        System.out.println("DUDUUUUUwwwww");
-                    }
-
-                } else
-                    bdd.orWith(fac.ithVar(index));
-            }
-        return bdd;
-    }
+//    public BDD createOrBddConstraint(String readLine) {
+//        StringTokenizer tkn = new StringTokenizer(readLine, ",");
+//        String tknPiece = tkn.nextToken().trim();
+//        int index;
+//        BDD bdd = null;
+//        boolean isFlag= false;
+//        index = varTable.get(tknPiece);
+//        bdd = fac.ithVar(index);
+//
+//            while (tkn.hasMoreTokens()) {
+//                tknPiece = tkn.nextToken();
+//                index = varTable.get(tknPiece);
+//
+//                if (((index == indexBdd) && (isFlag == false))) {
+//                    bdd.orWith(fac.ithVar(index).not());
+//                    isFlag = true;
+//                } else if (store.contains(tknPiece) && (isFlag == false) && (!tkn.hasMoreTokens())) {
+//                    if ((index != indexBdd)) {
+//                        bdd.orWith(fac.ithVar(indexBdd).not());
+//                        isFlag = true;
+//                        //System.out.println("DUDUUUUU");
+//                    }else {
+//                        bdd.orWith(fac.ithVar(index).not());
+//                       // System.out.println("DUDUUUUUwwwww");
+//                    }
+//
+//                } else
+//                    bdd.orWith(fac.ithVar(index));
+//            }
+//        return bdd;
+//    }
 
     public BDD createXorBdd(String readLine) {
         StringTokenizer tkn = new StringTokenizer(readLine, ",");
@@ -557,9 +559,9 @@ public class BDDCreator {
         StringTokenizer tkn = new StringTokenizer(line, ",");
         String tknPiece;
 
-        String beforeTkn, afterTkn;
-        int init, end, index;
-        BDD bdd, aux;
+        String beforeTkn, afterTkn,token;
+        int init, end, index, indexWaypoint, indexRoverStore, indexFullRoverStore;
+        BDD bdd=null, bddWaypoint=null, bddRoverStore=null, bddFullRoverStore=null,aux;
         BDD returnedBdd = null;
         Set setWaypoint = new HashSet<>();
         Set setRoverStore = new HashSet<>();
@@ -575,46 +577,69 @@ public class BDDCreator {
             }
         }
         tkn = new StringTokenizer(line, ",");
-        while (tkn.hasMoreTokens()) {
-            tknPiece = tkn.nextToken();
-            if (setWaypoint.contains(tknPiece)) {
-                index = varTable.get(tknPiece);
-                bdd = fac.ithVar(index);
-                for (Object objBDD : setRoverStore
-                ) {
-                    int index1 = varTable.get(objBDD);
-                    init = line.indexOf(tknPiece);
-                    end = init + tknPiece.length() + 1;
-
-                    beforeTkn = line.substring(0, init);
-                    afterTkn = line.substring(end);
-
-                    if (beforeTkn.equals("")) {
-                        aux = createOrBddConstraint(afterTkn,setRoverStore,index1).not();
-                        bdd.andWith(aux);
-                    } else if (afterTkn.equals("")) {
-                        aux = createOrBdd(beforeTkn).not();
-                        bdd.andWith(aux);
-                    } else {
-                        aux = createOrBdd(beforeTkn).not();
-                        bdd.andWith(aux);
-
-                        aux = createOrBdd(afterTkn).not();
-                        bdd.andWith(aux);
-
-                    }
-
-                    if (returnedBdd == null) {
-                        returnedBdd = bdd;
-                    } else {
-                        returnedBdd.orWith(bdd);
-                    }
-                   // bdd.free();
-                    bdd = fac.ithVar(index);
+        for (Object objWaypoint: setWaypoint) {
+            indexWaypoint = varTable.get(objWaypoint);
+            bddWaypoint = fac.ithVar(indexWaypoint);
+            for (Object objRoverStore: setRoverStore) {
+                BDD auxway = bddWaypoint;
+                indexRoverStore = varTable.get(objRoverStore);
+                bddRoverStore = fac.ithVar(indexRoverStore);
+                String temp = line;
+                int indexAuxWaypoint = line.indexOf(objWaypoint.toString());
+                //temp =  temp.substring(indexAuxWaypoint, objWaypoint.toString().length()+1);
+                temp = temp.replaceAll(objWaypoint.toString()+",","");
+                temp = temp.replaceAll(objRoverStore.toString()+",","");
+                aux = createOrBdd(temp).not();
+                BDD out= (auxway.and(bddRoverStore)).andWith(aux);
+                if (returnedBdd == null) {
+                    returnedBdd = (out);
+                } else {
+                    returnedBdd.orWith(out);
                 }
+
+
+
+
             }
         }
-
+//        while (tkn.hasMoreTokens()) {
+//            tknPiece = tkn.nextToken();
+//            if (setWaypoint.contains(tknPiece)) {
+//                index = varTable.get(tknPiece);
+//                bdd = fac.ithVar(index);
+//                init = line.indexOf(tknPiece);
+//                end = init + tknPiece.length() + 1;
+//
+//                beforeTkn = line.substring(0, init);
+//                afterTkn = line.substring(end);
+//
+//                if (beforeTkn.equals("")) {
+//                    aux = createOrBdd(afterTkn).not();
+//                    bdd.andWith(aux);
+//                } else if (afterTkn.equals("")) {
+//                    aux = createOrBdd(beforeTkn).not();
+//                    bdd.andWith(aux);
+//                } else {
+//                    aux = createOrBdd(beforeTkn).not();
+//                    bdd.andWith(aux);
+//
+//                    aux = createOrBdd(afterTkn).not();
+//                    bdd.andWith(aux);
+//
+//                }
+//
+//
+//            }else {
+//                if (setRoverStore.contains(tknPiece)) {
+//                    // adicionar codigo
+//                }
+//            }
+//            if (returnedBdd == null) {
+//                returnedBdd = bdd;
+//            } else {
+//                returnedBdd.orWith(bdd);
+//            }
+//        }
 
         return returnedBdd;
     }
@@ -828,12 +853,44 @@ public class BDDCreator {
 
     /*Creates the constraint bdd */
     public void createConstraintBDD(String line) {
+        BDD auxBDD = null;
         BDD waypoint = createExclusiveXorBdd(line);
         BDD storeRover = createExclusiveXorStoreBdd(line);
+//        List<Integer> lstIndexBDDOneStoreRover = new ArrayList<>();
+//
+//        for (Object obj : storeRover.allsat()) {
+//            byte[] auxStoreRover = (byte[]) obj;
+//            for (int i = 0; i < auxStoreRover.length; i++) {
+//                if (auxStoreRover[i] == 1) {
+//                    lstIndexBDDOneStoreRover.add(i);
+//
+//                }
+//            }
+//        }
+//        for (Object objWaypoint : waypoint.allsat()) {
+//            byte[] auxWaypoint = (byte[]) objWaypoint;
+//
+//            for (int j = 0; j < auxWaypoint.length; i++) {
+//                BDD aux = fac.ithVar(j);
+//                if (i == j) {
+//                    auxBDD = auxBDD.andWith(auxBDDStore);
+//                } else {
+//                    if (auxBDD == null) {
+//                        auxBDD = aux;
+//                    } else
+//                        auxBDD = auxBDD.andWith(aux);
+//                }
+//            }
+//
+//
+//        }
+
         if (constraintBDD == null) {
             constraintBDD = waypoint;
+          //  constraintStoreBDD = storeRover;
         } else {
             constraintBDD.andWith(waypoint);
+           // constraintStoreBDD.andWith(storeRover);
         }
     }
 

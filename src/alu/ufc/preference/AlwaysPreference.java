@@ -18,6 +18,7 @@ public class AlwaysPreference {
     private transient BDD goalState;
     private transient BDD initialState;
     private  transient BDD constraints;//
+    private  transient BDD constraintsStore;
     private transient BDD auxiliar;
     private transient BDD preference;
     private boolean isSatEU = false;
@@ -29,11 +30,13 @@ public class AlwaysPreference {
     private transient List<String> lstAction;
     private transient  Hashtable<Integer,List<String>> hstOutput =  new Hashtable<>();
 
-    public AlwaysPreference(Vector<Action> actionSet, BDD goalState, BDD initialState, BDD constraints, BDD auxiliar) {
+    public AlwaysPreference(Vector<Action> actionSet, BDD goalState, BDD initialState, BDD constraints,  BDD auxiliar) {
         this.actionSet = actionSet;
         this.goalState = goalState;
         this.initialState = initialState;
         this.constraints = constraints;
+        this.constraintsStore = constraintsStore;
+
         this.auxiliar = auxiliar;
     }
 
@@ -109,7 +112,7 @@ public class AlwaysPreference {
                 return Y;
             } else {
                 Y = Y.or(W.and(reg));
-                if(Y.and(initialState).equals(goalState)){
+                if(Y.and(initialState).equals(initialState)){
                     System.out.println("meta atendida");
                 }
             }
@@ -161,7 +164,7 @@ public class AlwaysPreference {
             } else {
                 aux = regressionForte(formula, a);
             }
-            if (output == null) {
+             if (output == null) {
                 output = aux;
             } else {
                 output = output.orWith(aux);
@@ -191,7 +194,7 @@ public class AlwaysPreference {
             reg = reg.and(a.getPreCondictionBDD()); //precondition(a) ^ E changes(a). test
 
         }
-        return reg.and(constraints);
+        return (reg.and(constraints));
     }
 
     public BDD regressionForte(BDD Y, Action a) {
@@ -203,12 +206,9 @@ public class AlwaysPreference {
             for (BDD bdd : a.modifyAction()) {
                 reg = reg.forAll(bdd);//qbf computation
             }
-           // if (reg.isZero() == false)
-             //   System.out.println("Name action relevant:" + a.getName());
-
-            reg = reg.and(a.getPreCondictionBDD()); //precondition(a) ^ E changes(a). test
+           reg = reg.and(a.getPreCondictionBDD()); //precondition(a) ^ E changes(a). test
         }
-        return reg.and(constraints);
+        return (reg.and(constraints));
     }
 
 

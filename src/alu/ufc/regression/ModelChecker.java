@@ -64,7 +64,7 @@ public class ModelChecker {
         try {
             if (preference.getOperator() == Operator.always) {
                 long start = System.currentTimeMillis();
-                alwaysPreference.satEG(preference.getBddProposition());
+               // alwaysPreference.satEG(preference.getBddProposition());
                 BDD out  =   alwaysPreference.satEU(preference.getBddProposition(),this.goalState);
                // alwaysPreference.satAG(out);
                // BDD out  =   alwaysPreference.satAU(preference.getBddProposition(),this.goalState);
