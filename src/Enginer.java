@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class Enginer {
     public static void main(String[] args) throws IOException {
-        String fileName = "/home/wccmachado/RegressaoFraca/Domain/Rover/p01/p01.pddl";
+        String fileName = "/home/wccmachado/RegressaoFraca/Domain/Rover/p01/p01AlwaysCopia.pddl";
 
         String fileCanonicalPath = new File(fileName /*+ "_" + cont + ".txt"*/).getCanonicalPath();
 

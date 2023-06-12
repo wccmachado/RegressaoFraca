@@ -108,13 +108,6 @@ public class Action {
 
         return listEffectAux;
     }
-
-    /*
-    *
-    * Effect:
-    * return: {efect1, efect2, effect3}
-     */
-
     /**
      * this method obtains the propositions that make up an effect. Effects
      * can be separated by the ":" character,i.e, efect1:efect2:effect3.

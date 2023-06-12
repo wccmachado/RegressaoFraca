@@ -40,6 +40,14 @@ public class AlwaysPreference {
         this.auxiliar = auxiliar;
     }
 
+    public List<String> getLstAction() {
+        return lstAction;
+    }
+
+    public void setLstAction(List<String> lstAction) {
+        this.lstAction = lstAction;
+    }
+
     public Hashtable<Integer, List<String>> getHstOutput() {
         return hstOutput;
     }
@@ -100,26 +108,23 @@ public class AlwaysPreference {
         BDD Y = psi;
         BDD X = null; // -- valor empty (constante).
         BDD reg;
-       // BDD aux;
 
         System.out.println("Computando EU");
 
         while ((X == null) || (X.equals(Y) == false)) {
             X = Y;
-            reg = regression(Y); //Y
-
+            reg = regression(Y);
             if (reg == null) {
                 return Y;
             } else {
                 Y = Y.or(W.and(reg));
                 if(Y.and(initialState).equals(initialState)){
                     System.out.println("meta atendida");
+                    return Y;
                 }
             }
-            hstOutput.put(i,lstAction);
             i++;
         }
-        System.out.println("Quantidade de passos: " + i);
 
         return Y;
     }
@@ -143,7 +148,7 @@ public class AlwaysPreference {
             } else {
                 Y = Y.or(W.and(reg));
             }
-            hstOutput.put(i,lstAction);
+          //  hstOutput.put(i,lstAction);
             i++;
         }
         System.out.println("Quantidade de passos AU: " + i);
@@ -167,7 +172,8 @@ public class AlwaysPreference {
              if (output == null) {
                 output = aux;
             } else {
-                output = output.orWith(aux);
+                 if (aux.and(output).equals(output)==false)
+                     output = output.orWith(aux);
             }
         }
         return output;

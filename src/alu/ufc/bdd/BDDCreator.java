@@ -48,9 +48,6 @@ public class BDDCreator {
         return constraintBDD;
     }
 
-    public void setConstraintBDD(BDD constraintBDD) {
-        this.constraintBDD = constraintBDD;
-    }
 
     /***** Get Methods *******/
 
@@ -580,66 +577,25 @@ public class BDDCreator {
         for (Object objWaypoint: setWaypoint) {
             indexWaypoint = varTable.get(objWaypoint);
             bddWaypoint = fac.ithVar(indexWaypoint);
-            for (Object objRoverStore: setRoverStore) {
-                BDD auxway = bddWaypoint;
-                indexRoverStore = varTable.get(objRoverStore);
-                bddRoverStore = fac.ithVar(indexRoverStore);
-                String temp = line;
-                int indexAuxWaypoint = line.indexOf(objWaypoint.toString());
-                //temp =  temp.substring(indexAuxWaypoint, objWaypoint.toString().length()+1);
-                temp = temp.replaceAll(objWaypoint.toString()+",","");
-                temp = temp.replaceAll(objRoverStore.toString()+",","");
-                aux = createOrBdd(temp).not();
-                BDD out= (auxway.and(bddRoverStore)).andWith(aux);
+//            for (Object objRoverStore: setRoverStore) {
+//                BDD auxway = bddWaypoint;
+//                indexRoverStore = varTable.get(objRoverStore);
+//                bddRoverStore = fac.ithVar(indexRoverStore);
+//                String temp = line;
+//                int indexAuxWaypoint = line.indexOf(objWaypoint.toString());
+//                //temp =  temp.substring(indexAuxWaypoint, objWaypoint.toString().length()+1);
+//                temp = temp.replaceAll(objWaypoint.toString()+",","");
+//                temp = temp.replaceAll(objRoverStore.toString()+",","");
+//                aux = createOrBdd(temp).not();
+//                BDD out= (auxway.and(bddRoverStore)).andWith(aux);
                 if (returnedBdd == null) {
-                    returnedBdd = (out);
+                    returnedBdd = (bddWaypoint);
                 } else {
-                    returnedBdd.orWith(out);
-                }
-
-
-
-
+                    returnedBdd.xorWith(bddWaypoint.not());
+             //   }
             }
         }
-//        while (tkn.hasMoreTokens()) {
-//            tknPiece = tkn.nextToken();
-//            if (setWaypoint.contains(tknPiece)) {
-//                index = varTable.get(tknPiece);
-//                bdd = fac.ithVar(index);
-//                init = line.indexOf(tknPiece);
-//                end = init + tknPiece.length() + 1;
-//
-//                beforeTkn = line.substring(0, init);
-//                afterTkn = line.substring(end);
-//
-//                if (beforeTkn.equals("")) {
-//                    aux = createOrBdd(afterTkn).not();
-//                    bdd.andWith(aux);
-//                } else if (afterTkn.equals("")) {
-//                    aux = createOrBdd(beforeTkn).not();
-//                    bdd.andWith(aux);
-//                } else {
-//                    aux = createOrBdd(beforeTkn).not();
-//                    bdd.andWith(aux);
-//
-//                    aux = createOrBdd(afterTkn).not();
-//                    bdd.andWith(aux);
-//
-//                }
-//
-//
-//            }else {
-//                if (setRoverStore.contains(tknPiece)) {
-//                    // adicionar codigo
-//                }
-//            }
-//            if (returnedBdd == null) {
-//                returnedBdd = bdd;
-//            } else {
-//                returnedBdd.orWith(bdd);
-//            }
-//        }
+        returnedBdd.not().printDot();
 
         return returnedBdd;
     }
@@ -856,35 +812,6 @@ public class BDDCreator {
         BDD auxBDD = null;
         BDD waypoint = createExclusiveXorBdd(line);
         BDD storeRover = createExclusiveXorStoreBdd(line);
-//        List<Integer> lstIndexBDDOneStoreRover = new ArrayList<>();
-//
-//        for (Object obj : storeRover.allsat()) {
-//            byte[] auxStoreRover = (byte[]) obj;
-//            for (int i = 0; i < auxStoreRover.length; i++) {
-//                if (auxStoreRover[i] == 1) {
-//                    lstIndexBDDOneStoreRover.add(i);
-//
-//                }
-//            }
-//        }
-//        for (Object objWaypoint : waypoint.allsat()) {
-//            byte[] auxWaypoint = (byte[]) objWaypoint;
-//
-//            for (int j = 0; j < auxWaypoint.length; i++) {
-//                BDD aux = fac.ithVar(j);
-//                if (i == j) {
-//                    auxBDD = auxBDD.andWith(auxBDDStore);
-//                } else {
-//                    if (auxBDD == null) {
-//                        auxBDD = aux;
-//                    } else
-//                        auxBDD = auxBDD.andWith(aux);
-//                }
-//            }
-//
-//
-//        }
-
         if (constraintBDD == null) {
             constraintBDD = waypoint;
           //  constraintStoreBDD = storeRover;
